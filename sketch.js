@@ -15,7 +15,7 @@ function setup() {
   
   background(51);
 
-  socket = io.connect('https://samis-pong.herokuapp.com/');
+  socket = io();
   socket.on('mouse', getOpponentLocation);
   socket.on('side', pickSide);
   socket.on('start', startGame);
