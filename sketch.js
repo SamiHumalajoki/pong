@@ -21,7 +21,7 @@ function setup() {
     if (side == 'right') leftY = data.y;
   });
 
-  socket.on('side', (data) => (data) {
+  socket.on('side', (data) => {
     console.log(data);
     side = data;
   }  
