@@ -16,17 +16,21 @@ function setup() {
   background(51);
 
   socket = io.connect("https://samis-pong.herokuapp.com/");
-  socket.on('mouse', getOpponentLocation);
-  socket.on('side', pickSide);
-  socket.on('start', startGame);
+  socket.on('mouse', (data) => {
+    if (side == 'left') rightY = data.y;
+    if (side == 'right') leftY = data.y;
+  });
+
+  socket.on('side', (data) => (data) {
+    console.log(data);
+    side = data;
+  }  
+  socket.on('start', sync);
+  socket.on('hit', sync);
 }
 
-function pickSide(data) {
-  console.log(data);
-  side = data;
-}  
-
-function startGame(data) {
+function sync(data) {
+  console.log("started");
   ballVelocityX = data.vx;
   ballVelocityY = data.vy;
   ballX = data.x;
@@ -48,22 +52,40 @@ function mouseMoved() {
 
 function draw() {
   background(51);
-  if (side=='left') leftY = mouseY;
-  else rightY = mouseY;
+  let data = {
+    y: ballY,
+    x: ballX,
+    vx: ballVelocityX;
+    vy: ballVelocityY
+  }
+  if (side=='left') {
+    leftY = mouseY;
+    // left player hits ball
+    if (ballX < leftX) {
+      if (ballY > leftY-40 && ballY < leftY+40) {
+        ballVelocityX = -ballVelocityX; 
+        socket.emit('hit',data);
+      }
+      else socket.emit('miss');
+  if (side=='right') {
+    rightY = mouseY;
+    // right player hits ball
+    if (ballX > rightX) {
+      if (ballY > rightY-40 && ballY < rightY+40) {
+        ballVelocityX = -ballVelocityX;
+        socket.emit('hit',data);
+      }
+      else socket.emit('miss');
+  }
+
   
   rect(leftX, leftY-40, 30, 80); //rihgt player racket 
   rect(rightX, rightY-40, 30, 80); // left player racket
   rect(ballX-5, ballY-5, 10, 10);
   ballX += ballVelocityX;
   ballY += ballVelocityY;
+  //ball hits wall
   if (ballY < 0 || ballY > 800) {
-    ballVelocityY = -ballVelocityY; //ball hits wall
-  }
-  if (ballX > rightX && ballY > rightY-40 && ballY < rightY+40) {
-    ballVelocityX = -ballVelocityX; // right player hits ball
-  }
-  if (ballX < leftX && ballY > leftY-40 && ballY < leftY+40) {
-    ballVelocityX = -ballVelocityX; // left player hits ball
-  }
-  
+    ballVelocityY = -ballVelocityY; 
+  } 
 }
